@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: predictive-maintenance
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: predictive-maintenance-sa
+  namespace: predictive-maintenance
+  annotations:
+    # Filled in by `eksctl create iamserviceaccount` (see infra/README.md).
+    # Left here as a placeholder so the manifest is self-documenting;
+    # eksctl will patch this annotation onto the SA it creates, or you can
+    # set it manually if you provisioned the IAM role a different way:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::<ACCOUNT_ID>:role/<IRSA_ROLE_NAME>"

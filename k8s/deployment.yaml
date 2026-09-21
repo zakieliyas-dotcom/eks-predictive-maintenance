@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predictive-maintenance
+  namespace: predictive-maintenance
+  labels:
+    app: predictive-maintenance
+spec:
+  replicas: 1   # single instance is fine - this is a poll loop, not a
+                 # request-serving workload; if it restarts it just resumes
+                 # polling on the next cycle with no state loss (Prometheus
+                 # holds the history, not this pod).
+  selector:
+    matchLabels:
+      app: predictive-maintenance
+  template:
+    metadata:
+      labels:
+        app: predictive-maintenance
+    spec:
+      serviceAccountName: predictive-maintenance-sa
+      containers:
+        - name: predictive-maintenance
+          image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/predictive-maintenance:latest
+          envFrom:
+            - configMapRef:
+                name: predictive-maintenance-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command: ["python", "-c", "import sys; sys.exit(0)"]
+            initialDelaySeconds: 30
+            periodSeconds: 60

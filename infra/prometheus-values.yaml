@@ -1,0 +1,41 @@
+# infra/prometheus-values.yaml
+#
+# Deploy with:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm install kube-prom prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace -f infra/prometheus-values.yaml
+#
+# Gives us the two metric families the model consumes:
+#   node CPU:    100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+#   node memory: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100
+#   pod CPU/mem: from kube-state-metrics + cAdvisor via kubelet
+
+prometheus:
+  prometheusSpec:
+    retention: 15d
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    # Scrape at 30s so the forecasting model has enough resolution to see
+    # short-horizon trends without generating excessive series cardinality
+    # on a small demo cluster.
+    scrapeInterval: 30s
+
+alertmanager:
+  enabled: true   # kept for baseline/reactive alerting comparison in evaluation
+                    # (see docs/evaluation.md - Phase 1 is compared against a
+                    # naive Alertmanager static-threshold rule as the baseline)
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: true

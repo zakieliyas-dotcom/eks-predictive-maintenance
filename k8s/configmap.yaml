@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: predictive-maintenance-config
+  namespace: predictive-maintenance
+data:
+  PROMETHEUS_URL: "http://kube-prom-kube-prometheus-prometheus.monitoring:9090"
+  STEP_SECONDS: "30"
+  LOOKBACK_SECONDS: "3600"
+  EVAL_INTERVAL_SECONDS: "60"
+  THRESHOLD_PCT: "90"
+  WARN_LEAD_MINUTES: "30"
+  CRITICAL_LEAD_MINUTES: "10"
+  REQUIRED_CONSECUTIVE_CYCLES: "3"
+  ALERT_COOLDOWN_SECONDS: "900"
+  ALERT_SENDER: "predictive-maintenance-alerts@yourdomain.com"
+  ALERT_RECIPIENTS: "oncall@yourdomain.com"
+  AWS_REGION: "us-east-2"
+  # Phase 2 - leave false for the Phase 1 submission. See remediation.py.
+  ENABLE_REMEDIATION_MODULE: "false"
+  TARGET_NAMESPACE: "default"
+  TARGET_HPA_NAME: "web-app"

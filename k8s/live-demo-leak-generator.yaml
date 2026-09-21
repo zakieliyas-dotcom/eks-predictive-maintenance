@@ -1,0 +1,51 @@
+# k8s/live-demo-leak-generator.yaml
+#
+# Optional: deploy this to *actually watch* the system catch a real
+# resource leak on your cluster, instead of only the offline simulation
+# in scripts/run_evaluation.py. It's a small pod that steadily consumes
+# more memory over time (a real, intentional "leak"), so you can confirm
+# an alert email actually arrives before OOM.
+#
+# Deploy:
+#   kubectl apply -f k8s/live-demo-leak-generator.yaml
+# Watch:
+#   kubectl logs -n predictive-maintenance deploy/predictive-maintenance -f
+# Clean up when done (it will eventually get OOMKilled/restarted, which is
+# expected and fine for a demo, but don't leave it running):
+#   kubectl delete -f k8s/live-demo-leak-generator.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leak-demo
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: leak-demo
+  template:
+    metadata:
+      labels:
+        app: leak-demo
+    spec:
+      containers:
+        - name: leak-demo
+          image: python:3.12-slim
+          command:
+            - python
+            - -c
+            - |
+              import time
+              chunks = []
+              # Grabs ~10MB every 5s -> node/pod memory climbs steadily,
+              # giving the forecaster a real trend to detect.
+              while True:
+                  chunks.append(bytearray(10 * 1024 * 1024))
+                  time.sleep(5)
+          resources:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 512Mi   # capped so it can't take the node down -
+                                # this is a controlled demo, not a real incident

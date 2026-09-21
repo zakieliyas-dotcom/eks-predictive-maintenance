@@ -1,0 +1,58 @@
+# infra/eksctl-cluster.yaml
+#
+# Creates the EKS cluster used by the Intelligent Predictive Maintenance
+# solution. Deploy with:
+#
+#   eksctl create cluster -f infra/eksctl-cluster.yaml
+#
+# This is intentionally a small, cheap cluster (2x t3.medium on-demand +
+# a 1-3 node spot group) suitable for a course project / PoC. Scale
+# instanceType / desiredCapacity up for a production deployment.
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: predictive-maintenance-demo
+  region: us-east-2
+  version: "1.33"
+  tags:
+    project: ai-predictive-maintenance
+    owner: capstone-assignment
+
+iam:
+  withOIDC: true   # required for IRSA (IAM Roles for Service Accounts) - the
+                    # predictive-maintenance pod uses this to call SES/CloudWatch
+                    # without static AWS keys.
+
+managedNodeGroups:
+  - name: ng-onDemand
+    instanceType: t3.medium
+    desiredCapacity: 2
+    minSize: 2
+    maxSize: 4
+    volumeSize: 20
+    labels:
+      role: workload
+    tags:
+      project: ai-predictive-maintenance
+
+  - name: ng-spot
+    instanceTypes: ["t3.medium", "t3a.medium"]
+    spot: true
+    desiredCapacity: 1
+    minSize: 0
+    maxSize: 3
+    volumeSize: 20
+    labels:
+      role: burst
+
+addons:
+  - name: vpc-cni
+  - name: coredns
+  - name: kube-proxy
+  - name: aws-ebs-csi-driver
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]

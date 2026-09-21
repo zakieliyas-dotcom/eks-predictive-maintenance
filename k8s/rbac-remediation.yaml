@@ -1,0 +1,33 @@
+# k8s/rbac-remediation.yaml
+#
+# NOT applied in the Phase 1 submission. Included to demonstrate what
+# Phase 2's authorization boundary looks like: scoped to exactly the two
+# verbs remediation.py uses, in exactly the namespace it's allowed to act
+# in. This is intentionally more restrictive than "edit" or "admin".
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: predictive-maintenance-remediation
+  namespace: default   # the workload namespace being protected, NOT the
+                         # predictive-maintenance namespace itself
+rules:
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "patch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: predictive-maintenance-remediation-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: predictive-maintenance-sa
+    namespace: predictive-maintenance
+roleRef:
+  kind: Role
+  name: predictive-maintenance-remediation
+  apiGroup: rbac.authorization.k8s.io

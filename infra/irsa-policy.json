@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SendPredictiveAlerts",
+      "Effect": "Allow",
+      "Action": [
+        "ses:SendEmail",
+        "ses:SendRawEmail"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ses:FromAddress": "predictive-maintenance-alerts@yourdomain.com"
+        }
+      }
+    },
+    {
+      "Sid": "ReadClusterMetrics",
+      "Effect": "Allow",
+      "Action": [
+        "cloudwatch:GetMetricData",
+        "cloudwatch:ListMetrics",
+        "cloudwatch:GetMetricStatistics"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "Phase2RemediationScopeOnly",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeCluster"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
